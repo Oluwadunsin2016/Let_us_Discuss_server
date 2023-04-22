@@ -43,42 +43,16 @@ const io = socket(server, {
 });
 
 global.onlineUsers = new Map();
-const currentUserId=""
+let currentUserId=''
 io.on("connection", (socket) => {
-  global.chatSocket = socket;
-  socket.on("add-user", (userId) => {
-    // console.log(socket.id,userId);
-    onlineUsers.set( socket.id,userId);
-    currentUserId=userId
-    const users=Array.from(onlineUsers).map(([id,userId])=>userId)
-    // console.log(users);
-    socket.emit("onlineUsers", users);
-    // console.log(`This ${currentUserId} has logged in`);
-    // console.log(`OnlineUsers: ${users}`);
-  })
-
-socket.on("disconnect", () => {
-onlineUsers.delete(socket.id);
-const users=Array.from(onlineUsers).map(([id,userId])=>userId)
-
-    socket.emit("onlineUsers", users);
-     socket.emit("userDisconnected",{loggedOutUserId:currentUserId, lastSeen:new Date()});
-    console.log(`This ${currentUserId} has logged out`);
-    // console.log(`OnlineUsers: ${users}`);
-
-})
-
-// socket.on("disconnectMe", (userId) => {
-//     socket.emit("userDisconnected",{loggedOutUserId:userId, lastSeen:new Date()});
-//     console.log(`This ${userId} has logged out`);
-// })
-
-
-
-  socket.on("send-message", (data) => {
+ socket.on("send-message", (data) => {
     const userSocketSent= onlineUsers.get(data.to);
+    console.log(onlineUsers);
+    console.log(data);
+    console.log(userSocketSent);
     if (userSocketSent) {
       socket.to(userSocketSent).emit("received-message",data)
+    console.log(userSocketSent);
     }
   });
   socket.on("send-group-message", (data) => {
@@ -87,4 +61,53 @@ const users=Array.from(onlineUsers).map(([id,userId])=>userId)
       socket.to(groupSocketSent).emit("received-group-message",data)
     }
   });
+
+
+  global.chatSocket = socket;
+  socket.on("add-user", (userId) => {
+    // console.log(socket.id,userId);
+    onlineUsers.set(userId,socket.id);
+    currentUserId=userId
+    const users=Array.from(onlineUsers).map(([id,userId])=>id)
+    // console.log(users);
+    console.log(onlineUsers);
+    socket.emit("onlineUsers", users);
+    console.log(`This ${userId} has logged in`);
+    // console.log(`OnlineUsers: ${users}`);
+  })
+
+socket.on("disconnect", () => {
+onlineUsers.delete(currentUserId);
+const users=Array.from(onlineUsers).map(([id,userId])=>id)
+
+    socket.emit("onlineUsers", users);
+     socket.emit("userDisconnected",{loggedOutUserId:currentUserId, lastSeen:new Date()});
+    console.log(`This ${currentUserId} has logged out`);
+    // console.log(`OnlineUsers: ${users}`);
+
+})
+
+
+// socket.on("disconnectMe", (userId) => {
+    // socket.emit("userDisconnected",{loggedOutUserId:userId, lastSeen:new Date()});
+    // console.log(`This ${userId} has logged out`);
+
+// onlineUsers.delete(userId);
+// const users=Array.from(onlineUsers).map(([id,userId])=>id)
+
+//     socket.emit("onlineUsers", users);
+//      socket.emit("userDisconnected",{loggedOutUserId:userId, lastSeen:new Date()});
+//     console.log(`This ${userId} has logged out`);
+    // console.log(`OnlineUsers: ${users}`);
+ 
+// })
+
+//    socket.on("disconnect", (userId) => {
+// onlineUsers.delete(userId);
+// const users=Array.from(onlineUsers).map(([id,userId])=>id)
+
+//     socket.emit("onlineUsers", users);
+//      socket.emit("userDisconnected",{loggedOutUserId:userId, lastSeen:new Date()});
+//     console.log(`This ${userId} has logged out`);
+// })
 });
