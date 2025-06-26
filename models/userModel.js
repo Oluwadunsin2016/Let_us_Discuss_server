@@ -4,14 +4,12 @@ const userSchema = mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    unique: true,
     min: 3,
     max: 20,
   },
   lastName: {
     type: String,
     required: true,
-    unique: true,
     min: 3,
     max: 20,
   },
@@ -37,6 +35,12 @@ const userSchema = mongoose.Schema({
     type: String,
     default: "https://res.cloudinary.com/dz8elpgwn/image/upload/v1677083356/Profile_Pictures/default_user_image_fjdzay.png",
   },
+  lastSeen: {
+    type: Date,
+    default: Date.now(),
+  },
+}, {
+  timestamps: true,
 });
 
 const userModel = mongoose.model("Users", userSchema);
