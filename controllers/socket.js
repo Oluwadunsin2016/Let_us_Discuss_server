@@ -71,50 +71,34 @@ const setupSocket = (io) => {
       });      
 
     // 👥 Group Messaging
-    // socket.on("send-group-message", (data) => {
-    //   const { groupId, from } = data;
-
-    //   // Broadcast to everyone *except* sender
-    //   socket.broadcast.emit("received-group-message", data);
-
-    //   // 🔔 Notify group members (except sender)
-    //   socket.broadcast.emit("notify-unread-message", {
-    //     from,
-    //     groupId,
-    //     isGroup: true,
-    //   });
-    // });
 
     socket.on("send-group-message", async (data) => {
       const { groupId, from } = data;
+
+      console.log('groupMessage:', data)
     
       try {
-        // 1. Find all group members
+        const {allChats} = await getUserChats(from)
+
+          const messages = await groupMessageModel.find({ group: groupId })
+            .sort({ createdAt: 1 })
+            .populate("sender", "userName profileImage firstName lastName email lastSeen");
+          
+          const history = formatByDate(messages);
+
+
         const members = await groupMemberModel.find({ group: groupId });
     
-        // 2. Get their socket IDs (exclude sender)
+
         members.forEach(({ member }) => {
           if (String(member) !== String(from)) {
             const socketId = onlineUsers.get(String(member));
             if (socketId) {
-              io.to(socketId).emit("received-group-message", data);
+              socket.to(socketId).emit("received-group-message", { history, chats:allChats });
             }
           }
         });
     
-        // 3. Notify for unread
-        // members.forEach(({ member }) => {
-        //   if (String(member) !== String(from)) {
-        //     const socketId = onlineUsers.get(String(member));
-        //     if (socketId) {
-        //       io.to(socketId).emit("notify-unread-message", {
-        //         from,
-        //         groupId,
-        //         isGroup: true,
-        //       });
-        //     }
-        //   }
-        // });
       } catch (err) {
         console.error("send-group-message error:", err);
       }
