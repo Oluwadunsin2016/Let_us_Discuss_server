@@ -199,7 +199,7 @@ const getUserChats = async (from) => {
     const formattedPrivateChats = await Promise.all(
       privateChats.map(async (chat) => {
         const otherUser = chat.participants.find(
-          (p) => p._id.toString() !== userId.toString()
+          (p) => p._id.toString() == userId.toString()
         );
 
         const unreadCount = await Message.countDocuments({
